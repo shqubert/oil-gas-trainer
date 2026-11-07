@@ -67,8 +67,12 @@ form .btn{width:100%;margin-top:18px}
 .tile{display:flex;flex-direction:column;text-align:left;border:0;border-radius:12px;padding:0;overflow:hidden;background:var(--surface);box-shadow:0 1px 0 var(--line)}
 .tile:hover .tname{color:var(--petrol)}
 .mosaic{display:grid;grid-template-columns:repeat(5,1fr)}
-.mosaic span{padding:6px;display:block}
-.mosaic svg{display:block;width:100%;height:auto}
+.mosaic{height:54px}
+.mosaic span{padding:6px;display:flex;align-items:center;justify-content:center;min-width:0;height:54px;box-sizing:border-box}
+.mosaic svg{display:block;height:100%;width:auto;max-width:100%}
+.tile.full{grid-column:1 / -1}
+.quote{grid-column:1 / -1;margin:8px 0 0;padding:14px 18px;text-align:center;color:var(--muted);font-style:italic;font-size:16px;text-wrap:balance}
+.quote cite{display:block;margin-top:4px;font-style:normal;font-size:13px}
 .tbody{padding:16px 18px 18px}
 .tname{font:700 clamp(17px,2.6vw,21px)/1.25 var(--display);display:block}
 .tbody small{display:block;color:var(--muted);margin-top:6px;font-size:15px}
@@ -470,6 +474,15 @@ function bindTop() {
 const doneCount = list => list.filter(x => me.st.q[x.id]).length;
 const wrongIds = sec => Object.keys(me.st.wrong).filter(k => BY_ID[k] && (!sec || BY_ID[k].sec === sec));
 
+const QUOTES = [["Повторение — мать учения.","Пословица"],["Терпение и труд всё перетрут.","Пословица"],["Глаза боятся, а руки делают.","Пословица"],["Век живи — век учись.","Пословица"],["Капля камень точит.","Пословица"],["Дорогу осилит идущий.","Пословица"],["Без труда не вытащишь и рыбку из пруда.","Пословица"],["Ученье — свет, а неученье — тьма.","Пословица"],["Не боги горшки обжигают.","Пословица"],["Семь раз отмерь — один раз отрежь.","Пословица"],["Тяжело в учении — легко в бою.","Поговорка"],["Через тернии к звёздам.","Латинское изречение"],["Сегодняшняя ошибка — завтрашний верный ответ.",""],["Каждый решённый вопрос на шаг приближает вас к цели.",""],["Двадцать примеров в день — и счёт в уме станет привычкой.",""],["Вы знаете больше, чем кажется перед экзаменом.",""],["Уверенность приходит не перед оценкой, а во время подготовки.",""],["Не нужно быть лучшей сразу. Нужно быть чуть лучше, чем вчера.",""],["Сложный вопрос — это просто вопрос, который вы ещё не разобрали.",""],["Десять минут сегодня важнее двух часов когда-нибудь.",""],["Ошибка на тренировке стоит дешевле ошибки на оценке.",""],["Нефть не найти, если не бурить. Знания не получить, если не пробовать.",""],["Даже самая глубокая скважина начинается с первого метра.",""],["Пласт отдаёт нефть постепенно. Память тоже работает постепенно.",""],["Геолог видит то, что скрыто под землёй. С этим тестом вы тоже справитесь.",""],["Хороший результат складывается из маленьких регулярных усилий.",""],["Дисциплина побеждает настроение.",""],["Вы уже сделали самое трудное: начали.",""],["Не сравнивайте себя с другими. Сравнивайте себя с собой вчерашней.",""],["То, что сегодня кажется сложным, через месяц будет очевидным.",""],["Спокойствие на оценке рождается из повторения дома.",""],["Сделайте один тест. Потом решите, нужен ли перерыв.",""],["Каждая работа над ошибками — это заранее заработанные баллы.",""],["Сильный специалист тоже когда-то не знал этого ответа.",""],["Маленький шаг каждый день длиннее большого рывка раз в месяц.",""],["Вы готовитесь не к тесту, а к новой должности.",""]];
+let lastQuote = -1;
+function quoteHtml() {
+  let i = Math.floor(Math.random() * QUOTES.length);
+  if (i === lastQuote) i = (i + 1) % QUOTES.length;
+  lastQuote = i;
+  const [text, who] = QUOTES[i];
+  return `<blockquote class="quote" id="quote">${esc(text)}${who ? `<cite>${esc(who)}</cite>` : ''}</blockquote>`;
+}
 function home() {
   T = null;
   const tile = sec => {
@@ -485,8 +498,12 @@ function home() {
   app.innerHTML = topbar('<span class="tag">ГЛАВНАЯ</span>') + `
     <h1>Что будем решать?</h1>
     <div class="tiles">${tile('prof')}${tile('think')}${tile('practice')}${tile('neuro')}
-      <button class="wide" id="daily"><span><b>Тренировка дня: счёт в уме</b><span>${(me.st.days || []).includes(dayKey(new Date())) ? 'Сегодня выполнена' : DAILY_SIZE + ' примеров от простых к сложным'}${streak() ? ', дней подряд: ' + streak() : ''}</span></span><span aria-hidden="true">→</span></button>
+      <button class="tile full" id="daily">
+        <span class="mosaic" style="grid-template-columns:repeat(3,1fr)">${[G.mental, G.math, G.numeric].map(g => `<span style="background:${g.color}">${g.art}</span>`).join('')}</span>
+        <span class="tbody"><span class="tname">Тренировка дня: счёт в уме</span>
+        <small>${(me.st.days || []).includes(dayKey(new Date())) ? 'Сегодня выполнена' : DAILY_SIZE + ' примеров от простых к сложным'}${streak() ? ', дней подряд: ' + streak() : ''}</small></span></button>
       <button class="wide" id="stats"><span><b>Мой прогресс</b><span>Сводка, результат оценки и рекомендации${w ? `, на повторение ${w}` : ''}</span></span><span aria-hidden="true">→</span></button>
+      ${quoteHtml()}
     </div>`;
   app.querySelectorAll('[data-sec]').forEach(el => el.onclick = () => section(el.dataset.sec));
   document.getElementById('stats').onclick = () => progress('prof');
